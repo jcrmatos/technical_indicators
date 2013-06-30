@@ -38,13 +38,14 @@ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
-
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+
 
 import numpy as np
 
-def rsi(closes, period=14):
+
+def rsi(prices, period=14):
     """
     The Relative Strength Index (RSI) is a momentum oscillator.
     It oscillates between 0 and 100.
@@ -72,24 +73,24 @@ def rsi(closes, period=14):
     http://stockcharts.com/help/doku.php?id=chart_school:technical_indicators:relative_strength_in
     
     Input:
-      closes ndarray
-      period int > 1 and < len(closes) (optional and defaults to 14)
+      prices ndarray
+      period int > 1 and < len(prices) (optional and defaults to 14)
     
     Output:
       rsis ndarray
     """
     
-    num_closes = len(closes)    
+    num_prices = len(prices)    
     
-    if num_closes < period:
+    if num_prices < period:
         # show error message
         raise SystemExit
     
     # this could be named gains/losses to save time/memory in the future    
-    changes = closes[1:] - closes[:-1]
+    changes = prices[1:] - prices[:-1]
     #num_changes = len(changes)
 
-    rsi_range = num_closes - period
+    rsi_range = num_prices - period
     
     rsis = np.zeros(rsi_range)
 
@@ -128,13 +129,12 @@ def rsi(closes, period=14):
     
     return rsis
 
-#test rsi
+#test rsi:
 #start_date = dt.date(2009, 12, 14)
 #end_date = dt.date(2010, 02, 01)
 #symbols = ['QQQ']
-#closes = np.array([44.55, 44.3, 44.36, 43.82, 44.46, 44.96, 45.23, 45.56, 45.98, 46.22, 46.03, 46.17, 45.75, 46.42, 46.42, 46.14, 46.17, 46.55, 46.36, 45.78, 46.35, 46.39, 45.85, 46.59, 45.92, 45.49, 44.16, 44.31, 44.35, 44.7, 43.55, 42.79, 43.26])
-#print rsi(closes)
-
+#prices = np.array([44.55, 44.3, 44.36, 43.82, 44.46, 44.96, 45.23, 45.56, 45.98, 46.22, 46.03, 46.17, 45.75, 46.42, 46.42, 46.14, 46.17, 46.55, 46.36, 45.78, 46.35, 46.39, 45.85, 46.59, 45.92, 45.49, 44.16, 44.31, 44.35, 44.7, 43.55, 42.79, 43.26])
+#print rsi(prices)
 #result:
 #[ 70.02141328  65.77440817  66.01226849  68.95536568  65.88342192
   #57.46707948  62.532685    62.86690858  55.64975092  62.07502976
@@ -142,7 +142,7 @@ def rsi(closes, period=14):
   #45.21224077  37.06939108  32.85768734  37.58081218]
 
 
-def sma(closes, period):
+def sma(prices, period):
     """
     Simple Moving Average (SMA) are used to smooth the data in an array to help
     eliminate noise and identify trends.
@@ -150,49 +150,130 @@ def sma(closes, period):
     
     They do not predict price direction, but can be used to identify the 
     direction of the trend or define potential support and resistance levels. 
+
+    SMA = (P1 + P2 + ... + Pn) / K
+    where K = n and Pn is the most recent price
+    
+    http://www.financialwebring.org/gummy-stuff/MA-stuff.htm
     
     http://www.csidata.com/?page_id=797
     http://stockcharts.com/school/doku.php?st=moving+average&id=chart_school:technical_indicators:moving_averages
-    
+      
     Input:
-      closes ndarray
-      period int > 1 and < len(closes)
+      prices ndarray
+      period int > 1 and < len(prices)
     
     Output:
       smas ndarray
     """
     
-    num_closes = len(closes)
+    num_prices = len(prices)
     
-    if num_closes < period:
+    if num_prices < period:
         # show error message
         raise SystemExit
     
-    sma_range = num_closes - period + 1
+    sma_range = num_prices - period + 1
     
     smas = np.zeros(sma_range)    
     
-    for idx in range(sma_range):
-        smas[idx] = np.mean(closes[idx:idx + period])
-      
-    # the above could also be done with list comprehension
-    #[smas[idx] = np.mean(closes[idx:idx + period]) for idx in range(sma_range)]
+    # only required for the commented code below
+    #k = period
     
+    for idx in range(sma_range):
+        # this is the code, but using np.mean below is faster and simpler
+        #for period_num in range(period):
+        #    smas[idx] += prices[idx + period_num]
+        #smas[idx] /= k
+        
+        smas[idx] = np.mean(prices[idx:idx + period])
+        
     return smas
 
-
-#test sma
-#closes = np.array([22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23, 22.43, 22.24, 22.29, 22.15, 22.39, 22.38, 22.61, 23.36, 24.05, 23.75, 23.83, 23.95, 23.63, 23.82, 23.87, 23.65, 23.19, 23.10, 23.33, 22.68, 23.10, 22.40, 22.17])
+#test sma:
+#prices = np.array([22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23, 22.43, 22.24, 22.29, 22.15, 22.39, 22.38, 22.61, 23.36, 24.05, 23.75, 23.83, 23.95, 23.63, 23.82, 23.87, 23.65, 23.19, 23.10, 23.33, 22.68, 23.10, 22.40, 22.17])
 #period = 10
-#print sma(closes, period)
-
+#print sma(prices, period)
 #result:
 #[ 22.221  22.209  22.229  22.259  22.303  22.421  22.613  22.765  22.905
   #23.076  23.21   23.377  23.525  23.652  23.71   23.684  23.612  23.505
   #23.432  23.277  23.131]
 
 
-def ema(closes, period):
+def wma(prices, period):
+    """
+    Weighted Moving Average (WMA) is a type of moving average that assigns a 
+    higher weighting to recent price data.
+
+    WMA = (P1 + 2 P2 + 3 P3 + ... + n Pn) / K
+    where K = (1+2+...+n) = n(n+1)/2 and Pn is the most recent price
+    
+    after the 1st WMA we can use another formula
+    WMAn = WMAn-1 + w.(Pn - SMA(prices, n-1))
+    where w = 2 / (n + 1)
+    
+    http://www.csidata.com/?page_id=797
+    
+    http://www.financialwebring.org/gummy-stuff/MA-stuff.htm
+    
+    http://www.investopedia.com/terms/l/linearlyweightedmovingaverage.asp
+    
+    http://fxtrade.oanda.com/learn/forex-indicators/weighted-moving-average
+        
+    Input:
+      prices ndarray
+      period int > 1 and < len(prices)
+    
+    Output:
+      wmas ndarray
+    """
+    
+    num_prices = len(prices)
+    
+    if num_prices < period:
+        # show error message
+        raise SystemExit
+    
+    wma_range = num_prices - period + 1
+    
+    wmas = np.zeros(wma_range)
+    
+    k = (period * (period + 1)) / 2.0
+
+    # only required for the commented code below
+    #w = 2 / float(period + 1)
+
+    for idx in range(wma_range):
+        for period_num in range(period):
+            weight = period_num + 1                
+            wmas[idx] += prices[idx + period_num] * weight
+        wmas[idx] /= k
+
+    # this is the code for the second formula, but I think the first is simpler
+    # to understand
+    #for idx in range(wma_range):
+        #if idx == 0:
+            #for period_num in range(period):
+                #weight = period_num + 1
+                #wmas[idx] += prices[idx + period_num] * weight
+            #wmas[idx] /= k
+
+        #else:
+            #wmas[idx] = wmas[idx - 1] + w * \
+                #(prices[idx + period - 1] - \
+                 #sma(prices[idx - 1:idx + period - 1], period))
+
+    return wmas
+
+#test wma:
+#prices = np.array([77, 79, 79, 81, 83, 49, 55])
+#period = 5
+#print wma(prices, period)
+#result:
+#[ 80.73333333  70.46666667  64.06666667]
+
+
+def ema(prices, period, ema_type=0):
     """
     Exponencial Moving Average (EMA) are used to smooth the data in an array to
     help eliminate noise and identify trends.
@@ -203,57 +284,133 @@ def ema(closes, period):
     
     They do not predict price direction, but can be used to identify the 
     direction of the trend or define potential support and resistance levels. 
+
+    EMA type 0
+    EMAn = w.Pn + (1 - w).EMAn-1
+    EMAn = EMAn-1 + w.(Pn - EMAn-1)
+    EMAn = w.Pn + w.(1 - w).Pn-1 + w.(1 - w)^2.Pn-2 + ... + 
+    w.(1 - w)^(n-1).P1 + w.(1 - w)^n.EMA0
+    where w = 2 / (n + 1) and EMA0 = mean(oldest period)
+    or
+    EMAn = w.EMAn-1 + (1 - w).Pn
+    where w = 1 - 2 / (n + 1) and Pn is the most recent price
+    and EMA0 = mean(oldest period)
+    
+    EMA type 1
+    The above formulas with EMA0 = P1 (oldest price)
+    
+    EMA type 2
+    EMA = (Pn + w.Pn-1 + w^2.Pn-2 + w^3.Pn-3 + ... ) / K
+    where K = 1 + w + w^2 + ... = 1 / (1 - w) and Pn is the most recent price
+    and w = 2 / (N + 1)
+    
+    http://www.financialwebring.org/gummy-stuff/MA-stuff.htm
     
     http://www.csidata.com/?page_id=797
     http://stockcharts.com/school/doku.php?st=moving+average&id=chart_school:technical_indicators:moving_averages
     
     Input:
-      closes ndarray
-      period int > 1 and < len(closes)
+      prices ndarray
+      period int > 1 and < len(prices)
+      ema_type can be 0, 1 or 2
     
     Output:
       emas ndarray
     """
+
+    num_prices = len(prices)
     
-    num_closes = len(closes)
-    
-    if num_closes < period:
+    if num_prices < period:
         # show error message
         raise SystemExit
     
-    ema_range = num_closes - period + 1
+    if ema_type == 0: # 1st value is the average of the period        
+        ema_range = num_prices - period + 1
+        
+        emas = np.zeros(ema_range)
+        
+        emas[0] = np.mean(prices[:period])
     
-    emas = np.zeros(ema_range)    
+        w = 2 / float(period + 1)
+        
+        # only required for the 4th formula
+        #w = 1 - 2 / float(period + 1)
+            
+        for idx in range(1, ema_range):
+            emas[idx] = w * prices[idx + period - 1] + (1 - w) * emas[idx - 1]
+            
+            # or with the 2nd formula
+            #emas[idx] = emas[idx - 1] + w * (prices[idx + period - 1] - \
+            #                                 emas[idx - 1])
+            
+            # or with the 4th formula
+            #emas[idx] = w * emas[idx - 1] + (1 - w) * prices[idx + period - 1]
+           
+    elif ema_type == 1: # 1st value is the 1st price
+        ema_range = num_prices
+        
+        emas = np.zeros(ema_range)
+        
+        emas[0] = prices[0]
     
-    emas[0] = np.mean(closes[:period])
-    
-    smooth_const = 2 / float(period + 1)
-    
-    for idx in range(1, ema_range):
-        emas[idx] = smooth_const * (closes[period + idx - 1] - \
-            emas[idx - 1]) + emas[idx - 1]
+        w = 2 / float(period + 1)
+        
+        # only required for the 4th formula 
+        #w = 1 - 2 / float(period + 1)
+        
+        for idx in range(1, ema_range):
+            emas[idx] = w * prices[idx] + (1 - w) * emas[idx - 1]
+            
+            # or with the 2nd formula
+            #emas[idx] = emas[idx - 1] + w * (prices[idx] - emas[idx - 1])
+            
+            # or with the 4th formula
+            #emas[idx] = w * emas[idx - 1] + (1 - w) * prices[idx]
+        
+    else:
+        ema_range = num_prices - period + 1
+        
+        emas = np.zeros(ema_range)
+        
+        w = 2 / float(period + 1)
+        
+        k = 1 / float(1 - w)
 
-    # the above could also be done with list comprehension
-    #[emas[idx] = smooth_const * (closes[period + idx - 1] - emas[idx - 1]) + \
-    # emas[idx - 1] for idx in range(1, ema_range)]
+        for idx in range(ema_range):
+            for period_num in range(period):
+                # this runs the prices backwards to comply with the formula
+                emas[idx] += w**period_num * \
+                    prices[idx + period - period_num - 1]
+            emas[idx] /= k
     
     return emas
 
-
-#test ema
-#closes = np.array([22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23, 22.43, 22.24, 22.29, 22.15, 22.39, 22.38, 22.61, 23.36, 24.05, 23.75, 23.83, 23.95, 23.63, 23.82, 23.87, 23.65, 23.19, 23.10, 23.33, 22.68, 23.10, 22.40, 22.17])
+#test ema:
+#prices = np.array([22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23, 22.43, 22.24, 22.29, 22.15, 22.39, 22.38, 22.61, 23.36, 24.05, 23.75, 23.83, 23.95, 23.63, 23.82, 23.87, 23.65, 23.19, 23.10, 23.33, 22.68, 23.10, 22.40, 22.17])
 #period = 10
-#print ema(closes, period)
-
+#print ema(prices, period)
+#print ema(prices, period, 1)
+#print ema(prices, period, 2)
 #result:
 #[ 22.221       22.20809091  22.24116529  22.26640796  22.32887924
   #22.51635574  22.79520015  22.96880013  23.12538192  23.27531248
   #23.33980112  23.42711001  23.50763546  23.53351992  23.47106176
   #23.40359598  23.39021489  23.26108491  23.23179675  23.08056097
   #22.91500443]
+#[ 22.27        22.25545455  22.22355372  22.21381668  22.20766819
+  #22.1935467   22.20017457  22.24196102  22.24160447  22.25040366
+  #22.23214845  22.26084873  22.2825126   22.34205576  22.52713653
+  #22.8040208   22.97601702  23.13128665  23.28014362  23.34375387
+  #23.43034408  23.51028152  23.53568488  23.47283308  23.40504525
+  #23.39140066  23.26205508  23.23259052  23.08121043  22.9155358 ]
+#[ 22.28588695  22.174706    22.35085492  22.37470018  22.5672175
+  #23.21585701  23.89833692  23.77696963  23.82035739  23.9264279
+  #23.68389526  23.79525297  23.85640891  23.68752817  23.28045894
+  #23.13280996  23.29414649  22.79166223  23.04393782  22.51707883
+  #22.23310448]
 
 
-def bb(closes, period, num_std_dev=2.0):
+def bb(prices, period, num_std_dev=2.0):
     """
     Bollinger bands (BB) are volatility bands placed above and below a moving
     average.
@@ -293,29 +450,29 @@ def bb(closes, period, num_std_dev=2.0):
     http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:bollinger_band_perce
     
     Input:
-      closes ndarray
-      period int > 1 and < len(closes)
+      prices ndarray
+      period int > 1 and < len(prices)
       num_std_dev float > 0.0 (optional and defaults to 2.0)
     
     Output:
       bbs ndarray
     """
     
-    num_closes = len(closes)
+    num_prices = len(prices)
         
-    if num_closes < period:
+    if num_prices < period:
         # show error message
         raise SystemExit
     
-    bb_range = num_closes - period + 1
+    bb_range = num_prices - period + 1
 
     # 3 bands, bandwidth, range and %B
     bbs = np.zeros((bb_range, 6))
 
-    simpleMA = sma(closes, period)
+    simpleMA = sma(prices, period)
 
     for idx in range(bb_range):
-        std_dev = np.std(closes[idx:idx + period])
+        std_dev = np.std(prices[idx:idx + period])
 
         # upper, middle, lower bands and the bandwidth
         bbs[idx, 0] = simpleMA[idx] + std_dev * num_std_dev
@@ -323,16 +480,14 @@ def bb(closes, period, num_std_dev=2.0):
         bbs[idx, 2] = simpleMA[idx] - std_dev * num_std_dev
         bbs[idx, 3] = (bbs[idx, 0] - bbs[idx, 2]) / bbs[idx, 1]
         bbs[idx, 4] = bbs[idx, 0] - bbs[idx, 2]
-        bbs[idx, 5] = (closes[idx] - bbs[idx, 2]) / bbs[idx, 4]
+        bbs[idx, 5] = (prices[idx] - bbs[idx, 2]) / bbs[idx, 4]
         
     return bbs
 
-
-#test bb
-#closes = np.array([86.16, 89.09, 88.78, 90.32, 89.07, 91.15, 89.44, 89.18, 86.93, 87.68, 86.96, 89.43, 89.32, 88.72, 87.45, 87.26, 89.50, 87.90, 89.13, 90.70, 92.90, 92.98, 91.80, 92.66, 92.68, 92.30, 92.77, 92.54, 92.95, 93.20, 91.07, 89.83, 89.74, 90.40, 90.74, 88.02, 88.09, 88.84, 90.78, 90.54, 91.39, 90.65])
+#test bb:
+#prices = np.array([86.16, 89.09, 88.78, 90.32, 89.07, 91.15, 89.44, 89.18, 86.93, 87.68, 86.96, 89.43, 89.32, 88.72, 87.45, 87.26, 89.50, 87.90, 89.13, 90.70, 92.90, 92.98, 91.80, 92.66, 92.68, 92.30, 92.77, 92.54, 92.95, 93.20, 91.07, 89.83, 89.74, 90.40, 90.74, 88.02, 88.09, 88.84, 90.78, 90.54, 91.39, 90.65])
 #period = 20
-#print bb(closes, period)
-
+#print bb(prices, period)
 #result:
 #[[  9.12919107e+01   8.87085000e+01   8.61250893e+01   5.82449423e-02
     #5.16682146e+00   6.75671306e-03]
