@@ -1,3 +1,6 @@
+v0.4 2013-07-03
+Added ROC and MA envelopes
+
 v0.3 2013-06-30
 Added WMA and more EMA types.
 

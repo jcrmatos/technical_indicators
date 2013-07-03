@@ -45,6 +45,48 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import numpy as np
 
 
+def roc(prices, period=21):
+    """
+    The Rate-of-Change (ROC) indicator, a.k.a. Momentum, is a pure momentum oscillator that measures the percent change in price from one period to the next. The plot forms an oscillator that fluctuates above and below the zero line as the Rate-of-Change moves from positive to negative. ROC signals include centerline crossovers, divergences and overbought-oversold readings. Identifying overbought or oversold extremes comes natural to the Rate-of-Change oscillator.
+    It can be used to measure the ROC of any data series, such as price or another indicator. 
+    Also known as PROC when used with price.
+    
+    ROC = [(Close - Close n periods ago) / (Close n periods ago)] * 100    
+    
+    http://www.csidata.com/?page_id=797
+    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:rate_of_change_roc_a
+    
+    Input:
+      prices ndarray
+      period int > 1 and < len(prices) (optional and defaults to 21)
+    
+    Output:
+      rocs ndarray
+    """
+    
+    num_prices = len(prices)    
+    
+    if num_prices < period:
+        # show error message
+        raise SystemExit
+
+    roc_range = num_prices - period
+    
+    rocs = np.zeros(roc_range)
+    
+    for idx in range(roc_range):
+        rocs[idx] = ((prices[idx + period] - prices[idx]) / prices[idx]) * 100
+
+    return rocs
+
+#test roc:
+#prices = np.array([11045.27, 11167.32, 11008.61, 11151.83, 10926.77, 10868.12, 10520.32, 10380.43, 10785.14, 10748.26, 10896.91, 10782.95, 10620.16, 10625.83, 10510.95, 10444.37, 10068.01, 10193.39, 10066.57, 10043.75])
+#print roc(prices, period=12)
+#result:
+#[-3.84879682 -4.84888048 -4.52064339 -6.34389154 -7.85923013 -6.20834146
+# -4.31308173 -3.24341092]
+
+
 def rsi(prices, period=14):
     """
     The Relative Strength Index (RSI) is a momentum oscillator.
@@ -410,6 +452,92 @@ def ema(prices, period, ema_type=0):
   #22.23310448]
 
 
+def ma_env(prices, period, percent, ma_type=0):
+    """
+    Moving Average Envelopes are percentage-based envelopes set above and below
+    a moving average. They can be used as a trend following indicator. 
+    The envelopes can also be used to identify overbought and oversold levels
+    when the trend is relatively flat.
+    
+    Upper Envelope: MA + (MA x percent)
+    Lower Envelope: MA - (MA x percent)
+    
+    http://www.csidata.com/?page_id=797
+    
+    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_average_envel
+    
+    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:bollinger_band_perce
+    
+    Input:
+      prices ndarray
+      period int > 1 and < len(prices)
+      percent float > 0.00 and < 1.00
+      ma_type 0=EMA type 0, 1=EMA type 1, 2=EMA type 2, 3=WMA, 4=SMA
+    
+    Output:
+      ma_envs ndarray with upper, middle, lower bands, range and %B
+    """
+    
+    num_prices = len(prices)
+        
+    if num_prices < period:
+        # show error message
+        raise SystemExit
+    
+    ma_env_range = num_prices - period + 1
+
+    # 3 bands, range and %B
+    ma_envs = np.zeros((ma_env_range, 5))
+
+    if 0 <= ma_type <= 2: #EMAs
+        ma = ema(prices, period, ema_type=ma_type)
+        
+    elif ma_type == 3: #WMA
+        ma = wma(prices, period)
+        
+    else: # SMA
+        ma = sma(prices, period)
+
+    for idx in range(ma_env_range):
+        # upper, middle, lower bands, range and %B
+        ma_envs[idx, 0] = ma[idx] + (ma[idx] * percent)
+        ma_envs[idx, 1] = ma[idx]
+        ma_envs[idx, 2] = ma[idx] - (ma[idx] * percent)
+        ma_envs[idx, 3] = ma_envs[idx, 0] - ma_envs[idx, 2]
+        ma_envs[idx, 4] = (prices[idx] - ma_envs[idx, 2]) / ma_envs[idx, 3]
+        
+    return ma_envs
+
+#test ma_env:
+#prices = np.array([86.16, 89.09, 88.78, 90.32, 89.07, 91.15, 89.44, 89.18, 86.93, 87.68, 86.96, 89.43, 89.32, 88.72, 87.45, 87.26, 89.50, 87.90, 89.13, 90.70, 92.90, 92.98, 91.80, 92.66, 92.68, 92.30, 92.77, 92.54, 92.95, 93.20, 91.07, 89.83, 89.74, 90.40, 90.74, 88.02, 88.09, 88.84, 90.78, 90.54, 91.39, 90.65])
+#period = 20
+#print ma_env(prices, period, 0.1, 4)
+#result:
+#[[  97.57935      88.7085       79.83765      17.7417        0.35635537]
+ #[  97.95005      89.0455       80.14095      17.8091        0.50249872]
+ #[  98.164        89.24         80.316        17.848         0.4742268 ]
+ #[  98.3301       89.391        80.4519       17.8782        0.55196273]
+ #[  98.4588       89.508        80.5572       17.9016        0.47553291]
+ #[  98.65735      89.6885       80.71965      17.9377        0.58147644]
+ #[  98.7206       89.746        80.7714       17.9492        0.48295189]
+ #[  98.90375      89.9125       80.92125      17.9825        0.45926595]
+ #[  99.08855      90.0805       81.07245      18.0161        0.32512863]
+ #[  99.41965      90.3815       81.34335      18.0763        0.35055017]
+ #[  99.72325      90.6575       81.59175      18.1315        0.29607313]
+ #[  99.9493       90.863        81.7767       18.1726        0.42114502]
+ #[  99.9713       90.883        81.7947       18.1766        0.41401032]
+ #[  99.9944       90.904        81.8136       18.1808        0.37987327]
+ #[ 100.0868       90.988        81.8892       18.1976        0.30557876]
+ #[ 100.26775      91.1525       82.03725      18.2305        0.28648419]
+ #[ 100.30955      91.1905       82.07145      18.2381        0.40730942]
+ #[ 100.232        91.12         82.008        18.224         0.32330992]
+ #[ 100.2837       91.167        82.0503       18.2334        0.38828194]
+ #[ 100.37445      91.2495       82.12455      18.2499        0.46989025]
+ #[ 100.36565      91.2415       82.11735      18.2483        0.59088518]
+ #[ 100.2826       91.166        82.0494       18.2332        0.59948884]
+ #[ 100.15445      91.0495       81.94455      18.2099        0.54121385]]
+
+
 def bb(prices, period, num_std_dev=2.0):
     """
     Bollinger bands (BB) are volatility bands placed above and below a moving
@@ -455,7 +583,7 @@ def bb(prices, period, num_std_dev=2.0):
       num_std_dev float > 0.0 (optional and defaults to 2.0)
     
     Output:
-      bbs ndarray
+      bbs ndarray with upper, middle, lower bands, bandwidth, range and %B
     """
     
     num_prices = len(prices)
@@ -474,7 +602,7 @@ def bb(prices, period, num_std_dev=2.0):
     for idx in range(bb_range):
         std_dev = np.std(prices[idx:idx + period])
 
-        # upper, middle, lower bands and the bandwidth
+        # upper, middle, lower bands, bandwidth, range and %B
         bbs[idx, 0] = simpleMA[idx] + std_dev * num_std_dev
         bbs[idx, 1] = simpleMA[idx]
         bbs[idx, 2] = simpleMA[idx] - std_dev * num_std_dev
