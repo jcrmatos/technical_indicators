@@ -1,0 +1,791 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>technical_indicators.technical_indicators &mdash; technical_indicators 0.0.5 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.0.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="technical_indicators 0.0.5 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">technical_indicators 0.0.5 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for technical_indicators.technical_indicators</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module provides some technical indicators for analysing stocks.</span>
+
+<span class="sd">When I can I will add more.</span>
+<span class="sd">If anyone wishes to contribute with new code or corrections/suggestions, feel</span>
+<span class="sd">free.</span>
+
+<span class="sd">Features:</span>
+
+<span class="sd">    Relative Strength Index (RSI), ROC, MA envelopes</span>
+<span class="sd">    Simple Moving Average (SMA), Weighted Moving Average (WMA), Exponential</span>
+<span class="sd">    Moving Average (EMA)</span>
+<span class="sd">    Bollinger Bands (BB), Bollinger Bandwidth, %B</span>
+
+<span class="sd">Dependencies:</span>
+
+<span class="sd">It requires numpy.</span>
+<span class="sd">This module was tested under Windows with Python 2.7.3 and numpy 1.6.1.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># Python 3 compatibility</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="p">(</span><span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span>
+                        <span class="n">unicode_literals</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="roc"><a class="viewcode-back" href="../../reference.html#technical_indicators.technical_indicators.roc">[docs]</a><span class="k">def</span> <span class="nf">roc</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="mi">21</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Rate-of-Change (ROC) indicator, a.k.a. Momentum, is a pure momentum</span>
+<span class="sd">    oscillator that measures the percent change in price from one period to the</span>
+<span class="sd">    next.</span>
+<span class="sd">    The plot forms an oscillator that fluctuates above and below the zero line</span>
+<span class="sd">    as the Rate-of-Change moves from positive to negative.</span>
+<span class="sd">    ROC signals include centerline crossovers, divergences and</span>
+<span class="sd">    overbought-oversold readings. Identifying overbought or oversold extremes</span>
+<span class="sd">    comes natural to the Rate-of-Change oscillator.</span>
+<span class="sd">    It can be used to measure the ROC of any data series, such as price or</span>
+<span class="sd">    another indicator.</span>
+<span class="sd">    Also known as PROC when used with price.</span>
+
+<span class="sd">    ROC = [(Close - Close n periods ago) / (Close n periods ago)] * 100</span>
+
+<span class="sd">    http://www.csidata.com/?page_id=797</span>
+<span class="sd">    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:rate_of_change_roc_a</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">      prices ndarray</span>
+<span class="sd">      period int &gt; 1 and &lt; len(prices) (optional and defaults to 21)</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">      rocs ndarray</span>
+
+<span class="sd">    Test:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import technical_indicators as tai</span>
+<span class="sd">    &gt;&gt;&gt; prices = np.array([11045.27, 11167.32, 11008.61, 11151.83, 10926.77,</span>
+<span class="sd">    ... 10868.12, 10520.32, 10380.43, 10785.14, 10748.26, 10896.91, 10782.95,</span>
+<span class="sd">    ... 10620.16, 10625.83, 10510.95, 10444.37, 10068.01, 10193.39, 10066.57,</span>
+<span class="sd">    ... 10043.75])</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.roc(prices, period=12))</span>
+<span class="sd">    [-3.84879682 -4.84888048 -4.52064339 -6.34389154 -7.85923013 -6.20834146</span>
+<span class="sd">     -4.31308173 -3.24341092]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_prices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prices</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_prices</span> <span class="o">&lt;</span> <span class="n">period</span><span class="p">:</span>
+        <span class="c"># show error message</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Error: num_prices &lt; period&#39;</span><span class="p">)</span>
+
+    <span class="n">roc_range</span> <span class="o">=</span> <span class="n">num_prices</span> <span class="o">-</span> <span class="n">period</span>
+
+    <span class="n">rocs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">roc_range</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">roc_range</span><span class="p">):</span>
+        <span class="n">rocs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">prices</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="n">period</span><span class="p">]</span> <span class="o">-</span> <span class="n">prices</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="o">/</span> <span class="n">prices</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="o">*</span> <span class="mi">100</span>
+
+    <span class="k">return</span> <span class="n">rocs</span>
+
+</div>
+<div class="viewcode-block" id="rsi"><a class="viewcode-back" href="../../reference.html#technical_indicators.technical_indicators.rsi">[docs]</a><span class="k">def</span> <span class="nf">rsi</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="o">=</span><span class="mi">14</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Relative Strength Index (RSI) is a momentum oscillator.</span>
+<span class="sd">    It oscillates between 0 and 100.</span>
+<span class="sd">    It is considered overbought/oversold when it&#39;s over 70/below 30.</span>
+<span class="sd">    Some traders use 80/20 to be on the safe side.</span>
+<span class="sd">    RSI becomes more accurate as the calculation period (min_periods)</span>
+<span class="sd">    increases.</span>
+<span class="sd">    This can be lowered to increase sensitivity or raised to decrease</span>
+<span class="sd">    sensitivity.</span>
+<span class="sd">    10-day RSI is more likely to reach overbought or oversold levels than</span>
+<span class="sd">    20-day RSI. The look-back parameters also depend on a security&#39;s</span>
+<span class="sd">    volatility.</span>
+
+<span class="sd">    Like many momentum oscillators, overbought and oversold readings for RSI</span>
+<span class="sd">    work best when prices move sideways within a range.</span>
+
+<span class="sd">    You can also look for divergence with price.</span>
+<span class="sd">    If the price has new highs/lows, and the RSI hasn&#39;t, expect a reversal.</span>
+<span class="sd">    Signals can also be generated by looking for failure swings and centerline</span>
+<span class="sd">    crossovers.</span>
+
+<span class="sd">    RSI can also be used to identify the general trend.</span>
+
+<span class="sd">    The RSI was developed by J. Welles Wilder and was first introduced in his</span>
+<span class="sd">    article in the June, 1978 issue of Commodities magazine, now known as</span>
+<span class="sd">    Futures magazine. It is detailed in his book New Concepts In Technical</span>
+<span class="sd">    Trading Systems.</span>
+
+<span class="sd">    http://www.csidata.com/?page_id=797</span>
+<span class="sd">    http://stockcharts.com/help/doku.php?id=chart_school:technical_indicators:relative_strength_in</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">      prices ndarray</span>
+<span class="sd">      period int &gt; 1 and &lt; len(prices) (optional and defaults to 14)</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">      rsis ndarray</span>
+
+<span class="sd">    Test:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import technical_indicators as tai</span>
+<span class="sd">    &gt;&gt;&gt; prices = np.array([44.55, 44.3, 44.36, 43.82, 44.46, 44.96, 45.23,</span>
+<span class="sd">    ... 45.56, 45.98, 46.22, 46.03, 46.17, 45.75, 46.42, 46.42, 46.14, 46.17,</span>
+<span class="sd">    ... 46.55, 46.36, 45.78, 46.35, 46.39, 45.85, 46.59, 45.92, 45.49, 44.16,</span>
+<span class="sd">    ... 44.31, 44.35, 44.7, 43.55, 42.79, 43.26])</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.rsi(prices))</span>
+<span class="sd">    [ 70.02141328  65.77440817  66.01226849  68.95536568  65.88342192</span>
+<span class="sd">      57.46707948  62.532685    62.86690858  55.64975092  62.07502976</span>
+<span class="sd">      54.39159393  50.10513101  39.68712141  41.17273382  41.5859395</span>
+<span class="sd">      45.21224077  37.06939108  32.85768734  37.58081218]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_prices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prices</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_prices</span> <span class="o">&lt;</span> <span class="n">period</span><span class="p">:</span>
+        <span class="c"># show error message</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Error: num_prices &lt; period&#39;</span><span class="p">)</span>
+
+    <span class="c"># this could be named gains/losses to save time/memory in the future</span>
+    <span class="n">changes</span> <span class="o">=</span> <span class="n">prices</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">prices</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c">#num_changes = len(changes)</span>
+
+    <span class="n">rsi_range</span> <span class="o">=</span> <span class="n">num_prices</span> <span class="o">-</span> <span class="n">period</span>
+
+    <span class="n">rsis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">rsi_range</span><span class="p">)</span>
+
+    <span class="n">gains</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">changes</span><span class="p">)</span>
+    <span class="c"># assign 0 to all negative values</span>
+    <span class="n">masked_gains</span> <span class="o">=</span> <span class="n">gains</span> <span class="o">&lt;</span> <span class="mi">0</span>
+    <span class="n">gains</span><span class="p">[</span><span class="n">masked_gains</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">losses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">changes</span><span class="p">)</span>
+    <span class="c"># assign 0 to all positive values</span>
+    <span class="n">masked_losses</span> <span class="o">=</span> <span class="n">losses</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="n">losses</span><span class="p">[</span><span class="n">masked_losses</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c"># convert all negatives into positives</span>
+    <span class="n">losses</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">avg_gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">gains</span><span class="p">[:</span><span class="n">period</span><span class="p">])</span>
+    <span class="n">avg_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">losses</span><span class="p">[:</span><span class="n">period</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">avg_loss</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">rsis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="n">avg_gain</span> <span class="o">/</span> <span class="n">avg_loss</span>
+        <span class="n">rsis</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">-</span> <span class="p">(</span><span class="mi">100</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">rs</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">rsi_range</span><span class="p">):</span>
+        <span class="n">avg_gain</span> <span class="o">=</span> <span class="p">((</span><span class="n">avg_gain</span> <span class="o">*</span> <span class="p">(</span><span class="n">period</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">gains</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="p">(</span><span class="n">period</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span> <span class="o">/</span>
+                    <span class="n">period</span><span class="p">)</span>
+        <span class="n">avg_loss</span> <span class="o">=</span> <span class="p">((</span><span class="n">avg_loss</span> <span class="o">*</span> <span class="p">(</span><span class="n">period</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">losses</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="p">(</span><span class="n">period</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)])</span> <span class="o">/</span>
+                    <span class="n">period</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">avg_loss</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rsis</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rs</span> <span class="o">=</span> <span class="n">avg_gain</span> <span class="o">/</span> <span class="n">avg_loss</span>
+            <span class="n">rsis</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">-</span> <span class="p">(</span><span class="mi">100</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">rs</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">rsis</span>
+
+</div>
+<div class="viewcode-block" id="sma"><a class="viewcode-back" href="../../reference.html#technical_indicators.technical_indicators.sma">[docs]</a><span class="k">def</span> <span class="nf">sma</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple Moving Average (SMA) are used to smooth the data in an array to help</span>
+<span class="sd">    eliminate noise and identify trends.</span>
+<span class="sd">    In SMA, each value in the time period carries equal weight.</span>
+
+<span class="sd">    They do not predict price direction, but can be used to identify the</span>
+<span class="sd">    direction of the trend or define potential support and resistance levels.</span>
+
+<span class="sd">    SMA = (P1 + P2 + ... + Pn) / K</span>
+<span class="sd">    where K = n and Pn is the most recent price</span>
+
+<span class="sd">    http://www.financialwebring.org/gummy-stuff/MA-stuff.htm</span>
+
+<span class="sd">    http://www.csidata.com/?page_id=797</span>
+<span class="sd">    http://stockcharts.com/school/doku.php?st=moving+average&amp;id=chart_school:technical_indicators:moving_averages</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">      prices ndarray</span>
+<span class="sd">      period int &gt; 1 and &lt; len(prices)</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">      smas ndarray</span>
+
+<span class="sd">    Test:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import technical_indicators as tai</span>
+<span class="sd">    &gt;&gt;&gt; prices = np.array([22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23,</span>
+<span class="sd">    ... 22.43, 22.24, 22.29, 22.15, 22.39, 22.38, 22.61, 23.36, 24.05, 23.75,</span>
+<span class="sd">    ... 23.83, 23.95, 23.63, 23.82, 23.87, 23.65, 23.19, 23.10, 23.33, 22.68,</span>
+<span class="sd">    ... 23.10, 22.40, 22.17])</span>
+<span class="sd">    &gt;&gt;&gt; period = 10</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.sma(prices, period))</span>
+<span class="sd">    [ 22.221  22.209  22.229  22.259  22.303  22.421  22.613  22.765  22.905</span>
+<span class="sd">      23.076  23.21   23.377  23.525  23.652  23.71   23.684  23.612  23.505</span>
+<span class="sd">      23.432  23.277  23.131]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_prices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prices</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_prices</span> <span class="o">&lt;</span> <span class="n">period</span><span class="p">:</span>
+        <span class="c"># show error message</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Error: num_prices &lt; period&#39;</span><span class="p">)</span>
+
+    <span class="n">sma_range</span> <span class="o">=</span> <span class="n">num_prices</span> <span class="o">-</span> <span class="n">period</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">smas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">sma_range</span><span class="p">)</span>
+
+    <span class="c"># only required for the commented code below</span>
+    <span class="c">#k = period</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sma_range</span><span class="p">):</span>
+        <span class="c"># this is the code, but using np.mean below is faster and simpler</span>
+        <span class="c">#for period_num in range(period):</span>
+        <span class="c">#    smas[idx] += prices[idx + period_num]</span>
+        <span class="c">#smas[idx] /= k</span>
+
+        <span class="n">smas</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">prices</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="n">period</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">smas</span>
+
+</div>
+<div class="viewcode-block" id="wma"><a class="viewcode-back" href="../../reference.html#technical_indicators.technical_indicators.wma">[docs]</a><span class="k">def</span> <span class="nf">wma</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Weighted Moving Average (WMA) is a type of moving average that assigns a</span>
+<span class="sd">    higher weighting to recent price data.</span>
+
+<span class="sd">    WMA = (P1 + 2 P2 + 3 P3 + ... + n Pn) / K</span>
+<span class="sd">    where K = (1+2+...+n) = n(n+1)/2 and Pn is the most recent price after the</span>
+<span class="sd">    1st WMA we can use another formula</span>
+<span class="sd">    WMAn = WMAn-1 + w.(Pn - SMA(prices, n-1))</span>
+<span class="sd">    where w = 2 / (n + 1)</span>
+
+<span class="sd">    http://www.csidata.com/?page_id=797</span>
+
+<span class="sd">    http://www.financialwebring.org/gummy-stuff/MA-stuff.htm</span>
+
+<span class="sd">    http://www.investopedia.com/terms/l/linearlyweightedmovingaverage.asp</span>
+
+<span class="sd">    http://fxtrade.oanda.com/learn/forex-indicators/weighted-moving-average</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">      prices ndarray</span>
+<span class="sd">      period int &gt; 1 and &lt; len(prices)</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">      wmas ndarray</span>
+
+<span class="sd">    Test:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import technical_indicators as tai</span>
+<span class="sd">    &gt;&gt;&gt; prices = np.array([77, 79, 79, 81, 83, 49, 55])</span>
+<span class="sd">    &gt;&gt;&gt; period = 5</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.wma(prices, period))</span>
+<span class="sd">    [ 80.73333333  70.46666667  64.06666667]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_prices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prices</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_prices</span> <span class="o">&lt;</span> <span class="n">period</span><span class="p">:</span>
+        <span class="c"># show error message</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Error: num_prices &lt; period&#39;</span><span class="p">)</span>
+
+    <span class="n">wma_range</span> <span class="o">=</span> <span class="n">num_prices</span> <span class="o">-</span> <span class="n">period</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">wmas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">wma_range</span><span class="p">)</span>
+
+    <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">period</span> <span class="o">*</span> <span class="p">(</span><span class="n">period</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+    <span class="c"># only required for the commented code below</span>
+    <span class="c">#w = 2 / float(period + 1)</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">wma_range</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">period_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">period</span><span class="p">):</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">period_num</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">wmas</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">prices</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="n">period_num</span><span class="p">]</span> <span class="o">*</span> <span class="n">weight</span>
+        <span class="n">wmas</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">/=</span> <span class="n">k</span>
+
+    <span class="c"># this is the code for the second formula, but I think the first is simpler</span>
+    <span class="c"># to understand</span>
+    <span class="c">#for idx in range(wma_range):</span>
+        <span class="c">#if idx == 0:</span>
+            <span class="c">#for period_num in range(period):</span>
+                <span class="c">#weight = period_num + 1</span>
+                <span class="c">#wmas[idx] += prices[idx + period_num] * weight</span>
+            <span class="c">#wmas[idx] /= k</span>
+
+        <span class="c">#else:</span>
+            <span class="c">#wmas[idx] = wmas[idx - 1] + w * \</span>
+                <span class="c">#(prices[idx + period - 1] - \</span>
+                 <span class="c">#sma(prices[idx - 1:idx + period - 1], period))</span>
+
+    <span class="k">return</span> <span class="n">wmas</span>
+
+</div>
+<div class="viewcode-block" id="ema"><a class="viewcode-back" href="../../reference.html#technical_indicators.technical_indicators.ema">[docs]</a><span class="k">def</span> <span class="nf">ema</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">,</span> <span class="n">ema_type</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exponencial Moving Average (EMA) are used to smooth the data in an array to</span>
+<span class="sd">    help eliminate noise and identify trends.</span>
+<span class="sd">    Exponential moving averages reduce the lag by applying more weight to</span>
+<span class="sd">    recent prices.</span>
+<span class="sd">    The weighting applied to the most recent price depends on the number of</span>
+<span class="sd">    periods in the moving average.</span>
+
+<span class="sd">    They do not predict price direction, but can be used to identify the</span>
+<span class="sd">    direction of the trend or define potential support and resistance levels.</span>
+
+<span class="sd">    EMA type 0</span>
+<span class="sd">    EMAn = w.Pn + (1 - w).EMAn-1</span>
+<span class="sd">    EMAn = EMAn-1 + w.(Pn - EMAn-1)</span>
+<span class="sd">    EMAn = w.Pn + w.(1 - w).Pn-1 + w.(1 - w)^2.Pn-2 + ... +</span>
+<span class="sd">    w.(1 - w)^(n-1).P1 + w.(1 - w)^n.EMA0</span>
+<span class="sd">    where w = 2 / (n + 1) and EMA0 = mean(oldest period)</span>
+<span class="sd">    or</span>
+<span class="sd">    EMAn = w.EMAn-1 + (1 - w).Pn</span>
+<span class="sd">    where w = 1 - 2 / (n + 1) and Pn is the most recent price</span>
+<span class="sd">    and EMA0 = mean(oldest period)</span>
+
+<span class="sd">    EMA type 1</span>
+<span class="sd">    The above formulas with EMA0 = P1 (oldest price)</span>
+
+<span class="sd">    EMA type 2</span>
+<span class="sd">    EMA = (Pn + w.Pn-1 + w^2.Pn-2 + w^3.Pn-3 + ... ) / K</span>
+<span class="sd">    where K = 1 + w + w^2 + ... = 1 / (1 - w) and Pn is the most recent price</span>
+<span class="sd">    and w = 2 / (N + 1)</span>
+
+<span class="sd">    http://www.financialwebring.org/gummy-stuff/MA-stuff.htm</span>
+
+<span class="sd">    http://www.csidata.com/?page_id=797</span>
+<span class="sd">    http://stockcharts.com/school/doku.php?st=moving+average&amp;id=chart_school:technical_indicators:moving_averages</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">      prices ndarray</span>
+<span class="sd">      period int &gt; 1 and &lt; len(prices)</span>
+<span class="sd">      ema_type can be 0, 1 or 2</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">      emas ndarray</span>
+
+<span class="sd">    Tests:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import technical_indicators as tai</span>
+<span class="sd">    &gt;&gt;&gt; prices = np.array([22.27, 22.19, 22.08, 22.17, 22.18, 22.13, 22.23,</span>
+<span class="sd">    ... 22.43, 22.24, 22.29, 22.15, 22.39, 22.38, 22.61, 23.36, 24.05, 23.75,</span>
+<span class="sd">    ... 23.83, 23.95, 23.63, 23.82, 23.87, 23.65, 23.19, 23.10, 23.33, 22.68,</span>
+<span class="sd">    ... 23.10, 22.40, 22.17])</span>
+<span class="sd">    &gt;&gt;&gt; period = 10</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.ema(prices, period))</span>
+<span class="sd">    [ 22.221       22.20809091  22.24116529  22.26640796  22.32887924</span>
+<span class="sd">      22.51635574  22.79520015  22.96880013  23.12538192  23.27531248</span>
+<span class="sd">      23.33980112  23.42711001  23.50763546  23.53351992  23.47106176</span>
+<span class="sd">      23.40359598  23.39021489  23.26108491  23.23179675  23.08056097</span>
+<span class="sd">      22.91500443]</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.ema(prices, period, 1))</span>
+<span class="sd">    [ 22.27        22.25545455  22.22355372  22.21381668  22.20766819</span>
+<span class="sd">      22.1935467   22.20017457  22.24196102  22.24160447  22.25040366</span>
+<span class="sd">      22.23214845  22.26084873  22.2825126   22.34205576  22.52713653</span>
+<span class="sd">      22.8040208   22.97601702  23.13128665  23.28014362  23.34375387</span>
+<span class="sd">      23.43034408  23.51028152  23.53568488  23.47283308  23.40504525</span>
+<span class="sd">      23.39140066  23.26205508  23.23259052  23.08121043  22.9155358 ]</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.ema(prices, period, 2))</span>
+<span class="sd">    [ 22.28588695  22.174706    22.35085492  22.37470018  22.5672175</span>
+<span class="sd">      23.21585701  23.89833692  23.77696963  23.82035739  23.9264279</span>
+<span class="sd">      23.68389526  23.79525297  23.85640891  23.68752817  23.28045894</span>
+<span class="sd">      23.13280996  23.29414649  22.79166223  23.04393782  22.51707883</span>
+<span class="sd">      22.23310448]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_prices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prices</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_prices</span> <span class="o">&lt;</span> <span class="n">period</span><span class="p">:</span>
+        <span class="c"># show error message</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Error: num_prices &lt; period&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ema_type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c"># 1st value is the average of the period</span>
+        <span class="n">ema_range</span> <span class="o">=</span> <span class="n">num_prices</span> <span class="o">-</span> <span class="n">period</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">emas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ema_range</span><span class="p">)</span>
+
+        <span class="n">emas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">prices</span><span class="p">[:</span><span class="n">period</span><span class="p">])</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">period</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c"># only required for the 4th formula</span>
+        <span class="c">#w = 1 - 2 / float(period + 1)</span>
+
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ema_range</span><span class="p">):</span>
+            <span class="n">emas</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">prices</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="n">period</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="n">emas</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+            <span class="c"># or with the 2nd formula</span>
+            <span class="c">#emas[idx] = emas[idx - 1] + w * ((prices[idx + period - 1] -</span>
+            <span class="c">#                                 emas[idx - 1]))</span>
+
+            <span class="c"># or with the 4th formula</span>
+            <span class="c">#emas[idx] = w * emas[idx - 1] + (1 - w) * prices[idx + period - 1]</span>
+
+    <span class="k">elif</span> <span class="n">ema_type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c"># 1st value is the 1st price</span>
+        <span class="n">ema_range</span> <span class="o">=</span> <span class="n">num_prices</span>
+
+        <span class="n">emas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ema_range</span><span class="p">)</span>
+
+        <span class="n">emas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">prices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">period</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c"># only required for the 4th formula</span>
+        <span class="c">#w = 1 - 2 / float(period + 1)</span>
+
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ema_range</span><span class="p">):</span>
+            <span class="n">emas</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">prices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="n">emas</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+            <span class="c"># or with the 2nd formula</span>
+            <span class="c">#emas[idx] = emas[idx - 1] + w * (prices[idx] - emas[idx - 1])</span>
+
+            <span class="c"># or with the 4th formula</span>
+            <span class="c">#emas[idx] = w * emas[idx - 1] + (1 - w) * prices[idx]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ema_range</span> <span class="o">=</span> <span class="n">num_prices</span> <span class="o">-</span> <span class="n">period</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">emas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ema_range</span><span class="p">)</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">period</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">w</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ema_range</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">period_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">period</span><span class="p">):</span>
+                <span class="c"># this runs the prices backwards to comply with the formula</span>
+                <span class="n">emas</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">w</span><span class="o">**</span><span class="n">period_num</span> <span class="o">*</span> \
+                    <span class="n">prices</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="n">period</span> <span class="o">-</span> <span class="n">period_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">emas</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">/=</span> <span class="n">k</span>
+
+    <span class="k">return</span> <span class="n">emas</span>
+
+</div>
+<div class="viewcode-block" id="ma_env"><a class="viewcode-back" href="../../reference.html#technical_indicators.technical_indicators.ma_env">[docs]</a><span class="k">def</span> <span class="nf">ma_env</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">,</span> <span class="n">percent</span><span class="p">,</span> <span class="n">ma_type</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Moving Average Envelopes are percentage-based envelopes set above and below</span>
+<span class="sd">    a moving average.</span>
+<span class="sd">    They can be used as a trend following indicator.</span>
+<span class="sd">    The envelopes can also be used to identify overbought and oversold levels</span>
+<span class="sd">    when the trend is relatively flat.</span>
+
+<span class="sd">    Upper Envelope: MA + (MA x percent)</span>
+<span class="sd">    Lower Envelope: MA - (MA x percent)</span>
+
+<span class="sd">    http://www.csidata.com/?page_id=797</span>
+
+<span class="sd">    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_average_envel</span>
+
+<span class="sd">    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:bollinger_band_perce</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">      prices ndarray</span>
+<span class="sd">      period int &gt; 1 and &lt; len(prices)</span>
+<span class="sd">      percent float &gt; 0.00 and &lt; 1.00</span>
+<span class="sd">      ma_type 0=EMA type 0, 1=EMA type 1, 2=EMA type 2, 3=WMA, 4=SMA</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">      ma_envs ndarray with upper, middle, lower bands, range and %B</span>
+
+<span class="sd">    Test:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import technical_indicators as tai</span>
+<span class="sd">    &gt;&gt;&gt; prices = np.array([86.16, 89.09, 88.78, 90.32, 89.07, 91.15, 89.44,</span>
+<span class="sd">    ... 89.18, 86.93, 87.68, 86.96, 89.43, 89.32, 88.72, 87.45, 87.26, 89.50,</span>
+<span class="sd">    ... 87.90, 89.13, 90.70, 92.90, 92.98, 91.80, 92.66, 92.68, 92.30, 92.77,</span>
+<span class="sd">    ... 92.54, 92.95, 93.20, 91.07, 89.83, 89.74, 90.40, 90.74, 88.02, 88.09,</span>
+<span class="sd">    ... 88.84, 90.78, 90.54, 91.39, 90.65])</span>
+<span class="sd">    &gt;&gt;&gt; period = 20</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.ma_env(prices, period, 0.1, 4))</span>
+<span class="sd">    [[  97.57935      88.7085       79.83765      17.7417        0.35635537]</span>
+<span class="sd">     [  97.95005      89.0455       80.14095      17.8091        0.50249872]</span>
+<span class="sd">     [  98.164        89.24         80.316        17.848         0.4742268 ]</span>
+<span class="sd">     [  98.3301       89.391        80.4519       17.8782        0.55196273]</span>
+<span class="sd">     [  98.4588       89.508        80.5572       17.9016        0.47553291]</span>
+<span class="sd">     [  98.65735      89.6885       80.71965      17.9377        0.58147644]</span>
+<span class="sd">     [  98.7206       89.746        80.7714       17.9492        0.48295189]</span>
+<span class="sd">     [  98.90375      89.9125       80.92125      17.9825        0.45926595]</span>
+<span class="sd">     [  99.08855      90.0805       81.07245      18.0161        0.32512863]</span>
+<span class="sd">     [  99.41965      90.3815       81.34335      18.0763        0.35055017]</span>
+<span class="sd">     [  99.72325      90.6575       81.59175      18.1315        0.29607313]</span>
+<span class="sd">     [  99.9493       90.863        81.7767       18.1726        0.42114502]</span>
+<span class="sd">     [  99.9713       90.883        81.7947       18.1766        0.41401032]</span>
+<span class="sd">     [  99.9944       90.904        81.8136       18.1808        0.37987327]</span>
+<span class="sd">     [ 100.0868       90.988        81.8892       18.1976        0.30557876]</span>
+<span class="sd">     [ 100.26775      91.1525       82.03725      18.2305        0.28648419]</span>
+<span class="sd">     [ 100.30955      91.1905       82.07145      18.2381        0.40730942]</span>
+<span class="sd">     [ 100.232        91.12         82.008        18.224         0.32330992]</span>
+<span class="sd">     [ 100.2837       91.167        82.0503       18.2334        0.38828194]</span>
+<span class="sd">     [ 100.37445      91.2495       82.12455      18.2499        0.46989025]</span>
+<span class="sd">     [ 100.36565      91.2415       82.11735      18.2483        0.59088518]</span>
+<span class="sd">     [ 100.2826       91.166        82.0494       18.2332        0.59948884]</span>
+<span class="sd">     [ 100.15445      91.0495       81.94455      18.2099        0.54121385]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_prices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prices</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_prices</span> <span class="o">&lt;</span> <span class="n">period</span><span class="p">:</span>
+        <span class="c"># show error message</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Error: num_prices &lt; period&#39;</span><span class="p">)</span>
+
+    <span class="n">ma_env_range</span> <span class="o">=</span> <span class="n">num_prices</span> <span class="o">-</span> <span class="n">period</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="c"># 3 bands, range and %B</span>
+    <span class="n">ma_envs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ma_env_range</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">ma_type</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>  <span class="c"># EMAs</span>
+        <span class="n">ma</span> <span class="o">=</span> <span class="n">ema</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">,</span> <span class="n">ema_type</span><span class="o">=</span><span class="n">ma_type</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">ma_type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c"># WMA</span>
+        <span class="n">ma</span> <span class="o">=</span> <span class="n">wma</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>  <span class="c"># SMA</span>
+        <span class="n">ma</span> <span class="o">=</span> <span class="n">sma</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ma_env_range</span><span class="p">):</span>
+        <span class="c"># upper, middle, lower bands, range and %B</span>
+        <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ma</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">ma</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">percent</span><span class="p">)</span>
+        <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">ma</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ma</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="n">ma</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">percent</span><span class="p">)</span>
+        <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">prices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">ma_envs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">ma_envs</span>
+
+</div>
+<div class="viewcode-block" id="bb"><a class="viewcode-back" href="../../reference.html#technical_indicators.technical_indicators.bb">[docs]</a><span class="k">def</span> <span class="nf">bb</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">,</span> <span class="n">num_std_dev</span><span class="o">=</span><span class="mf">2.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Bollinger bands (BB) are volatility bands placed above and below a moving</span>
+<span class="sd">    average.</span>
+<span class="sd">    Volatility is based on the standard deviation, which changes as volatility</span>
+<span class="sd">    increases and decreases.</span>
+<span class="sd">    The bands automatically widen when volatility increases and narrow when</span>
+<span class="sd">    volatility decreases.</span>
+<span class="sd">    This dynamic nature of Bollinger Bands also means they can be used on</span>
+<span class="sd">    different securities with the standard settings.</span>
+<span class="sd">    For signals, Bollinger Bands can be used to identify M-Tops and W-Bottoms</span>
+<span class="sd">    or to determine the strength of the trend.</span>
+<span class="sd">    Signals derived from narrowing BandWidth are also important.</span>
+
+<span class="sd">    Bollinger BandWidth is an indicator that derives from Bollinger Bands, and</span>
+<span class="sd">    measures the percentage difference between the upper band and the lower</span>
+<span class="sd">    band.</span>
+<span class="sd">    BandWidth decreases as Bollinger Bands narrow and increases as Bollinger</span>
+<span class="sd">    Bands widen.</span>
+<span class="sd">    Because Bollinger Bands are based on the standard deviation, falling</span>
+<span class="sd">    BandWidth reflects decreasing volatility and rising BandWidth reflects</span>
+<span class="sd">    increasing volatility.</span>
+
+<span class="sd">    %B quantifies a security&#39;s price relative to the upper and lower Bollinger</span>
+<span class="sd">    Band. There are six basic relationship levels:</span>
+<span class="sd">    %B equals 1 when price is at the upper band</span>
+<span class="sd">    %B equals 0 when price is at the lower band</span>
+<span class="sd">    %B is above 1 when price is above the upper band</span>
+<span class="sd">    %B is below 0 when price is below the lower band</span>
+<span class="sd">    %B is above .50 when price is above the middle band (20-day SMA)</span>
+<span class="sd">    %B is below .50 when price is below the middle band (20-day SMA)</span>
+
+<span class="sd">    They were developed by John Bollinger.</span>
+<span class="sd">    Bollinger suggests increasing the standard deviation multiplier to 2.1 for</span>
+<span class="sd">    a 50-period SMA and decreasing the standard deviation multiplier to 1.9 for</span>
+<span class="sd">    a 10-period SMA.</span>
+
+<span class="sd">    http://www.csidata.com/?page_id=797</span>
+<span class="sd">    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:bollinger_bands</span>
+<span class="sd">    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:bollinger_band_width</span>
+<span class="sd">    http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:bollinger_band_perce</span>
+
+<span class="sd">    Input:</span>
+<span class="sd">      prices ndarray</span>
+<span class="sd">      period int &gt; 1 and &lt; len(prices)</span>
+<span class="sd">      num_std_dev float &gt; 0.0 (optional and defaults to 2.0)</span>
+
+<span class="sd">    Output:</span>
+<span class="sd">      bbs ndarray with upper, middle, lower bands, bandwidth, range and %B</span>
+
+<span class="sd">    Test:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; import technical_indicators as tai</span>
+<span class="sd">    &gt;&gt;&gt; prices = np.array([86.16, 89.09, 88.78, 90.32, 89.07, 91.15, 89.44,</span>
+<span class="sd">    ... 89.18, 86.93, 87.68, 86.96, 89.43, 89.32, 88.72, 87.45, 87.26, 89.50,</span>
+<span class="sd">    ... 87.90, 89.13, 90.70, 92.90, 92.98, 91.80, 92.66, 92.68, 92.30, 92.77,</span>
+<span class="sd">    ... 92.54, 92.95, 93.20, 91.07, 89.83, 89.74, 90.40, 90.74, 88.02, 88.09,</span>
+<span class="sd">    ... 88.84, 90.78, 90.54, 91.39, 90.65])</span>
+<span class="sd">    &gt;&gt;&gt; period = 20</span>
+<span class="sd">    &gt;&gt;&gt; print(tai.bb(prices, period))</span>
+<span class="sd">    [[  9.12919107e+01   8.87085000e+01   8.61250893e+01   5.82449423e-02</span>
+<span class="sd">        5.16682146e+00   6.75671306e-03]</span>
+<span class="sd">     [  9.19497209e+01   8.90455000e+01   8.61412791e+01   6.52300429e-02</span>
+<span class="sd">        5.80844179e+00   5.07661263e-01]</span>
+<span class="sd">     [  9.26132536e+01   8.92400000e+01   8.58667464e+01   7.55995881e-02</span>
+<span class="sd">        6.74650724e+00   4.31816571e-01]</span>
+<span class="sd">     [  9.29344497e+01   8.93910000e+01   8.58475503e+01   7.92797873e-02</span>
+<span class="sd">        7.08689946e+00   6.31086945e-01]</span>
+<span class="sd">     [  9.33114122e+01   8.95080000e+01   8.57045878e+01   8.49848539e-02</span>
+<span class="sd">        7.60682430e+00   4.42420124e-01]</span>
+<span class="sd">     [  9.37270110e+01   8.96885000e+01   8.56499890e+01   9.00563838e-02</span>
+<span class="sd">        8.07702198e+00   6.80945403e-01]</span>
+<span class="sd">     [  9.38972812e+01   8.97460000e+01   8.55947188e+01   9.25117832e-02</span>
+<span class="sd">        8.30256250e+00   4.63143909e-01]</span>
+<span class="sd">     [  9.42636418e+01   8.99125000e+01   8.55613582e+01   9.67861377e-02</span>
+<span class="sd">        8.70228361e+00   4.15826692e-01]</span>
+<span class="sd">     [  9.45630193e+01   9.00805000e+01   8.55979807e+01   9.95225220e-02</span>
+<span class="sd">        8.96503854e+00   1.48579313e-01]</span>
+<span class="sd">     [  9.47851634e+01   9.03815000e+01   8.59778366e+01   9.74461225e-02</span>
+<span class="sd">        8.80732672e+00   1.93266744e-01]</span>
+<span class="sd">     [  9.50411874e+01   9.06575000e+01   8.62738126e+01   9.67087637e-02</span>
+<span class="sd">        8.76737475e+00   7.82660026e-02]</span>
+<span class="sd">     [  9.49062071e+01   9.08630000e+01   8.68197929e+01   8.89956780e-02</span>
+<span class="sd">        8.08641429e+00   3.22789193e-01]</span>
+<span class="sd">     [  9.49015375e+01   9.08830000e+01   8.68644625e+01   8.84332063e-02</span>
+<span class="sd">        8.03707509e+00   3.05526266e-01]</span>
+<span class="sd">     [  9.48939343e+01   9.09040000e+01   8.69140657e+01   8.77834713e-02</span>
+<span class="sd">        7.97986867e+00   2.26311285e-01]</span>
+<span class="sd">     [  9.48594576e+01   9.09880000e+01   8.71165424e+01   8.50982021e-02</span>
+<span class="sd">        7.74291521e+00   4.30661576e-02]</span>
+<span class="sd">     [  9.46722663e+01   9.11525000e+01   8.76327337e+01   7.72280810e-02</span>
+<span class="sd">        7.03953265e+00  -5.29486389e-02]</span>
+<span class="sd">     [  9.45543042e+01   9.11905000e+01   8.78266958e+01   7.37753219e-02</span>
+<span class="sd">        6.72760849e+00   2.48722001e-01]</span>
+<span class="sd">     [  9.46761721e+01   9.11200000e+01   8.75638279e+01   7.80546993e-02</span>
+<span class="sd">        7.11234420e+00   4.72660054e-02]</span>
+<span class="sd">     [  9.45733946e+01   9.11670000e+01   8.77606054e+01   7.47286754e-02</span>
+<span class="sd">        6.81278915e+00   2.01003516e-01]</span>
+<span class="sd">     [  9.45322396e+01   9.12495000e+01   8.79667604e+01   7.19508503e-02</span>
+<span class="sd">        6.56547911e+00   4.16304661e-01]</span>
+<span class="sd">     [  9.45303313e+01   9.12415000e+01   8.79526687e+01   7.20906879e-02</span>
+<span class="sd">        6.57766250e+00   7.52141243e-01]</span>
+<span class="sd">     [  9.43672335e+01   9.11660000e+01   8.79647665e+01   7.02286710e-02</span>
+<span class="sd">        6.40246702e+00   7.83328285e-01]</span>
+<span class="sd">     [  9.41460689e+01   9.10495000e+01   8.79529311e+01   6.80194599e-02</span>
+<span class="sd">        6.19313782e+00   6.21182512e-01]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">num_prices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prices</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_prices</span> <span class="o">&lt;</span> <span class="n">period</span><span class="p">:</span>
+        <span class="c"># show error message</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s">&#39;Error: num_prices &lt; period&#39;</span><span class="p">)</span>
+
+    <span class="n">bb_range</span> <span class="o">=</span> <span class="n">num_prices</span> <span class="o">-</span> <span class="n">period</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="c"># 3 bands, bandwidth, range and %B</span>
+    <span class="n">bbs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">bb_range</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+    <span class="n">simple_ma</span> <span class="o">=</span> <span class="n">sma</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="n">period</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">bb_range</span><span class="p">):</span>
+        <span class="n">std_dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">prices</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span><span class="n">idx</span> <span class="o">+</span> <span class="n">period</span><span class="p">])</span>
+
+        <span class="c"># upper, middle, lower bands, bandwidth, range and %B</span>
+        <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">simple_ma</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">std_dev</span> <span class="o">*</span> <span class="n">num_std_dev</span>
+        <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">simple_ma</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">simple_ma</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">std_dev</span> <span class="o">*</span> <span class="n">num_std_dev</span>
+        <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">prices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="n">bbs</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">bbs</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c">#import doctest</span>
+    <span class="c">#doctest.testmod(verbose=True)</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">technical_indicators 0.0.5 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Joao Matos.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

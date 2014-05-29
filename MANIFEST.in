@@ -1,0 +1,5 @@
+include *.txt *.rst *.py *.bat .travis.yml
+recursive-include doc *
+recursive-include technical_indicators *.txt
+recursive-include technical_indicators/doc *
+recursive-include test *
