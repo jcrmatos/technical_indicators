@@ -1,4 +1,4 @@
-include *.txt *.rst *.py *.bat .travis.yml
+include *.txt *.rst *.py *.bat *.yml
 recursive-include doc *
 recursive-include technical_indicators *.txt
 recursive-include technical_indicators/doc *

@@ -1,3 +1,8 @@
+0.0.6 2014-05-29 ::
+
+    Added Shippable CI
+
+
 0.0.5 2014-05-29 ::
 
     Added doctests, packaging, build automation, sphinx doc, travis.
