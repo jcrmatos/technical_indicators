@@ -1,3 +1,8 @@
+0.0.8 2014-05-30 ::
+
+    Corrected yml and __init__.py because numpy is not installing in Py3
+
+
 0.0.7 2014-05-30 ::
 
     Corrected test and yml files

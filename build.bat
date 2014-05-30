@@ -4,6 +4,8 @@ cls
 set OLDPATH=%PATH%
 set PATH=%PATH%;d:\miktex\miktex\bin
 
+if %CUR_PY%.==. goto :SEL_PY
+
 echo ***
 echo *** Cleanup and update basic info files
 echo ***
@@ -12,7 +14,7 @@ set PROJECT=technical_indicators
 rd /s /q build
 rd /s /q dist
 rd /s /q %PROJECT%.egg-info
-rd /s /q %PROJECT%-0.0.5
+rd /s /q %PROJECT%-0.0.8
 if exist *.pyc del *.pyc
 if exist %PROJECT%\*.pyc del %PROJECT%\*.pyc
 
@@ -75,12 +77,6 @@ pause
 cls
 
 python setup.py sdist bdist_egg bdist_wininst bdist_wheel
-echo ***
-echo *** End build
-echo ***
-pause
-cls
-
 python setup.py sdist bdist_egg bdist_wininst bdist_wheel upload -r test
 goto :EXIT
 
@@ -96,12 +92,6 @@ pause
 cls
 
 python setup.py sdist bdist_egg bdist_wininst bdist_wheel
-echo ***
-echo *** End build
-echo ***
-pause
-cls
-
 python setup.py sdist bdist_egg bdist_wininst bdist_wheel upload -r pypi
 goto :EXIT
 
@@ -121,6 +111,11 @@ echo *** PY2EXE build
 echo ***
 python setup.py py2exe
 if exist dist\__main__.exe ren dist\__main__.exe %PROJECT%.exe
+goto :EXIT
+
+:SEL_PY
+echo Must select Python 2 ou 3 by set CUR_PY=2 or CUR_PY=3
 
 :EXIT
 set PATH=%OLDPATH%
+set OLDPATH=
