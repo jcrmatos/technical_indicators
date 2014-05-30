@@ -1,3 +1,8 @@
+0.0.9 2014-05-30 ::
+
+    Added py_app_ver.py and changed build.bat.
+
+
 0.0.8 2014-05-30 ::
 
     Corrected yml and __init__.py because numpy is not installing in Py3

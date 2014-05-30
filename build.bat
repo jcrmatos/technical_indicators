@@ -11,10 +11,16 @@ echo *** Cleanup and update basic info files
 echo ***
 set PROJECT=technical_indicators
 
+python py_app_ver.py
+for /f "delims=" %%f in (py_ver.txt) do set PY_VER=%%f
+for /f "delims=" %%f in (app_ver.txt) do set APP_VER=%%f
+del py_ver.txt
+del app_ver.txt
+
 rd /s /q build
 rd /s /q dist
 rd /s /q %PROJECT%.egg-info
-rd /s /q %PROJECT%-0.0.8
+rd /s /q %PROJECT%-%APP_VER%
 if exist *.pyc del *.pyc
 if exist %PROJECT%\*.pyc del %PROJECT%\*.pyc
 
@@ -102,7 +108,7 @@ echo ***
 python cxf_setup.py build bdist_msi
 rem python cxf_setup.py build_exe
 rem cxfreeze cxf_setup.py build_exe
-copy build\exe.win32-2.7\%PROJECT%\*.* build\exe.win32-2.7
+copy build\exe.win32-%PY_VER%\%PROJECT%\*.* build\exe.win32-%PY_VER%
 goto :EXIT
 
 :PY2EXE
@@ -119,3 +125,5 @@ echo Must select Python 2 ou 3 by set CUR_PY=2 or CUR_PY=3
 :EXIT
 set PATH=%OLDPATH%
 set OLDPATH=
+set PY_VER=
+set APP_VER=
