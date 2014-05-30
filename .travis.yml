@@ -5,4 +5,8 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -r requirements.txt --use-mirrors
 # command to run tests, e.g. python setup.py test
-script:  cd technical_indicators && python -m doctest -v ../test/test.rst
+script:  python -m doctest -v test/test.rst
+notifications:
+  email:
+    on_success: never
+    on_failure: always

@@ -5,8 +5,9 @@ language: python
 before_script: mkdir -p shippable/codecoverage shippable/testresults
 install: pip install --use-mirrors -r requirements.txt
 script:
-  - cd technical_indicators
-  - python -m doctest -v ../test/test.rst
+  - python -m doctest -v test/test.rst
 notifications:
   email:
-   - jcrmatos@gmail.com
+    on_success: never
+    on_failure: always
+#   - jcrmatos@gmail.com
