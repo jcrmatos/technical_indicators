@@ -65,13 +65,14 @@ cls
 
 if "%1"=="test" goto :TEST
 if "%1"=="pypi" goto :PYPI
-if "%1"=="cxf" goto :CXF
-if "%1"=="py2exe" goto :PY2EXE
+rem if "%1"=="cxf" goto :CXF
+rem if "%1"=="py2exe" goto :PY2EXE
 
 echo ***
 echo *** Build only
 echo ***
-python setup.py sdist bdist_egg bdist_wininst bdist_wheel
+python setup.py sdist bdist_wheel
+rem bdist_egg bdist_wininst
 goto :EXIT
 
 :TEST
@@ -85,8 +86,10 @@ echo ***
 pause
 cls
 
-python setup.py sdist bdist_egg bdist_wininst bdist_wheel
-python setup.py sdist bdist_egg bdist_wininst bdist_wheel upload -r test
+python setup.py sdist bdist_wheel
+rem bdist_egg bdist_wininst
+python setup.py sdist bdist_wheel upload -r test
+rem bdist_egg bdist_wininst
 goto :EXIT
 
 :PYPI
@@ -100,8 +103,10 @@ echo ***
 pause
 cls
 
-python setup.py sdist bdist_egg bdist_wininst bdist_wheel
-python setup.py sdist bdist_egg bdist_wininst bdist_wheel upload -r pypi
+python setup.py sdist bdist_wheel
+rem bdist_egg bdist_wininst
+python setup.py sdist bdist_wheel upload -r pypi
+rem bdist_egg bdist_wininst
 goto :EXIT
 
 :CXF

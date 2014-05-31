@@ -70,7 +70,7 @@ setup(name=NAME,
       include_package_data=True,
       package_data=PKG_DATA,
 
-      zip_safe=True,
+      zip_safe=False,
 
       # py2exe config
       #console=[SCRIPT],

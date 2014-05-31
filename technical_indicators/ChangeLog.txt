@@ -1,3 +1,8 @@
+0.0.13 2014-05-31 ::
+
+    Remarked bdist_egg, bdist_wininst, cxf and py2exe builds from build.bat.
+
+
 0.0.12 2014-05-31 ::
 
     Added zip_safe to setup.py.
