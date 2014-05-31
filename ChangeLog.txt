@@ -1,3 +1,10 @@
+0.0.10 2014-05-31 ::
+
+    Corrected classifiers in __init__.py. Added ReadTheDocs doc.
+    Added prep_rst2pdf.py and prep_rst2pdf.py to help build.bat.
+    Changed build.bat.
+
+
 0.0.9 2014-05-30 ::
 
     Added py_app_ver.py and changed build.bat.

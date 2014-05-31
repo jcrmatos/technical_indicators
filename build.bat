@@ -38,26 +38,31 @@ echo ***
 echo *** Create documentation
 echo ***
 set SPHINXOPTS=-W -E
+
+ren doc\index.rst index.ori
+python prep_rst2pdf.py
 cd doc
 cmd /c make clean
-cmd /c make html
 cmd /c make latex
-pause
-cls
-
 cd _build\latex
 pdflatex.exe %PROJECT%.tex
 echo ***
 echo *** Repeat to correct references
 echo ***
 pdflatex.exe %PROJECT%.tex
-cd ..\..\..
+if not exist ..\..\..\%PROJECT%\doc md ..\..\..\%PROJECT%\doc
+copy /y %PROJECT%.pdf ..\..\..\%PROJECT%\doc > nul
+cd ..\..
+del index.rst
+ren index.ori index.rst
+
+cmd /c make clean
+cmd /c make html
+xcopy /y /e _build\html\*.* ..\%PROJECT%\doc\ > nul
+
+cmd /c make clean
+cd ..
 pause
-
-if not exist %PROJECT%\doc md %PROJECT%\doc
-xcopy /y /e doc\_build\html\*.* %PROJECT%\doc\ > nul
-copy /y doc\_build\latex\%PROJECT%.pdf %PROJECT%\doc > nul
-
 cls
 
 if "%1"=="test" goto :TEST

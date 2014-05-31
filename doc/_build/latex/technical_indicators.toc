@@ -1,8 +1,0 @@
-\select@language {english}
-\contentsline {chapter}{\numberline {1}Reference}{3}{chapter.1}
-\contentsline {section}{\numberline {1.1}technical\_indicators}{3}{section.1.1}
-\contentsline {chapter}{\numberline {2}License}{9}{chapter.2}
-\contentsline {chapter}{\numberline {3}ChangeLog}{15}{chapter.3}
-\contentsline {chapter}{\numberline {4}Code authors}{17}{chapter.4}
-\contentsline {chapter}{\numberline {5}Indices and tables}{19}{chapter.5}
-\contentsline {chapter}{Python Module Index}{21}{section*.10}

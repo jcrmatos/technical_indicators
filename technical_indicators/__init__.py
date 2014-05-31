@@ -43,13 +43,14 @@ CLASSIFIERS = ['Development Status :: 4 - Beta',
                'Environment :: Console',
                'Intended Audience :: End Users/Desktop',
                'Intended Audience :: Developers',
+               'Intended Audience :: Financial and Insurance Industry',
                'Natural Language :: English',
                'License :: OSI Approved ::' +
                ' GNU General Public License v2 or later (GPLv2+)',
                'Operating System :: OS Independent',
                'Programming Language :: Python',
                'Programming Language :: Python :: 2.7',
-               'Topic :: Other/Nonlisted Topic',
+               'Topic :: Office/Business :: Financial :: Investment',
                #'Private :: Do Not Upload'  # to prevent PyPI publishing
                ]
 
