@@ -1,3 +1,8 @@
+0.0.12 2014-05-31 ::
+
+    Added zip_safe to setup.py.
+
+
 0.0.11 2014-05-31 ::
 
     Added PyPI documentation in dir pythonhosted.org (redirects to
