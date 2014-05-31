@@ -8,7 +8,7 @@ from __future__ import (absolute_import, division, print_function,
 import sys
 from os import path
 from setuptools import setup, find_packages
-import py2exe
+#import py2exe
 
 
 from technical_indicators import (NAME, VERSION, DESC, LONG_DESC, LICENSE, URL,
@@ -71,6 +71,6 @@ setup(name=NAME,
       package_data=PKG_DATA,
 
       # py2exe config
-      console=[SCRIPT],
-      data_files=DATA_FILES_PY2EXE,
+      #console=[SCRIPT],
+      #data_files=DATA_FILES_PY2EXE,
       )

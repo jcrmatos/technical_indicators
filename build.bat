@@ -2,9 +2,7 @@
 cls
 
 set OLDPATH=%PATH%
-set PATH=%PATH%;d:\miktex\miktex\bin
-
-if %CUR_PY%.==. goto :SEL_PY
+set PATH=d:\miktex\miktex\bin;%PATH%
 
 echo ***
 echo *** Cleanup and update basic info files
@@ -123,9 +121,6 @@ echo ***
 python setup.py py2exe
 if exist dist\__main__.exe ren dist\__main__.exe %PROJECT%.exe
 goto :EXIT
-
-:SEL_PY
-echo Must select Python 2 ou 3 by set CUR_PY=2 or CUR_PY=3
 
 :EXIT
 set PATH=%OLDPATH%

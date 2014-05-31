@@ -1,3 +1,11 @@
+0.0.11 2014-05-31 ::
+
+    Added PyPI documentation in dir pythonhosted.org (redirects to
+    ReadTheDocs).
+    Changed doc\index.rst to include README.rst.
+    Updated build.bat.
+
+
 0.0.10 2014-05-31 ::
 
     Corrected classifiers in __init__.py. Added ReadTheDocs doc.
