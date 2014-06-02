@@ -1,3 +1,14 @@
+0.0.14 2014-06-02 ::
+
+    Added end user documentation to .gitignore.
+    Added option PROJ_TYPE to build.bat to distinguish between modules and
+    applications.
+    Added pythonhosted.org files to MANIFEST.in.
+    Changed __init__.py to use glob to select py2exe and cxf data files.
+    Added options to py2exe config in setup.py.
+    Fill some Docstrings.
+
+
 0.0.13 2014-05-31 ::
 
     Remarked bdist_egg, bdist_wininst, cxf and py2exe builds from build.bat.

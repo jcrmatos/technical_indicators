@@ -10,8 +10,8 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 
-with open('doc/index.ori') as f:
-    text = f.readlines()
+with open('doc/index.ori') as file_:
+    text = file_.readlines()
 
 new_text = ''
 
@@ -23,5 +23,5 @@ for line in text:
     else:
         new_text += line
 
-with open('doc/index.rst', 'w') as f:
-    f.writelines(new_text)
+with open('doc/index.rst', 'w') as file_:
+    file_.writelines(new_text)

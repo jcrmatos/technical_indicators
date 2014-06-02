@@ -9,6 +9,9 @@ echo *** Cleanup and update basic info files
 echo ***
 set PROJECT=technical_indicators
 
+rem PROJ_TYPE should be module (sdist only build) or anything else for sdist and binary builds
+set PROJ_TYPE=module
+
 python py_app_ver.py
 for /f "delims=" %%f in (py_ver.txt) do set PY_VER=%%f
 for /f "delims=" %%f in (app_ver.txt) do set APP_VER=%%f
@@ -65,14 +68,18 @@ cls
 
 if "%1"=="test" goto :TEST
 if "%1"=="pypi" goto :PYPI
-rem if "%1"=="cxf" goto :CXF
-rem if "%1"=="py2exe" goto :PY2EXE
 
+if %PROJ_TYPE%==module goto :BUILD
+
+if "%1"=="cxf" goto :CXF
+if "%1"=="py2exe" goto :PY2EXE
+
+:BUILD
 echo ***
 echo *** Build only
 echo ***
-python setup.py sdist bdist_wheel
-rem bdist_egg bdist_wininst
+if %PROJ_TYPE%==module python setup.py sdist
+if not %PROJ_TYPE%==module python setup.py sdist bdist_egg bdist_wininst bdist_wheel
 goto :EXIT
 
 :TEST
@@ -86,10 +93,8 @@ echo ***
 pause
 cls
 
-python setup.py sdist bdist_wheel
-rem bdist_egg bdist_wininst
-python setup.py sdist bdist_wheel upload -r test
-rem bdist_egg bdist_wininst
+if %PROJ_TYPE%==module python setup.py sdist upload -r test
+if not %PROJ_TYPE%==module python setup.py sdist bdist_egg bdist_wininst bdist_wheel upload -r test
 goto :EXIT
 
 :PYPI
@@ -103,10 +108,8 @@ echo ***
 pause
 cls
 
-python setup.py sdist bdist_wheel
-rem bdist_egg bdist_wininst
-python setup.py sdist bdist_wheel upload -r pypi
-rem bdist_egg bdist_wininst
+if %PROJ_TYPE%==module python setup.py sdist upload -r pypi
+if not %PROJ_TYPE%==module python setup.py sdist bdist_egg bdist_wininst bdist_wheel upload -r pypi
 goto :EXIT
 
 :CXF
@@ -116,6 +119,9 @@ echo ***
 python cxf_setup.py build bdist_msi
 rem python cxf_setup.py build_exe
 rem cxfreeze cxf_setup.py build_exe
+echo ***
+echo *** Copy datafiles
+echo ***
 copy build\exe.win32-%PY_VER%\%PROJECT%\*.* build\exe.win32-%PY_VER%
 goto :EXIT
 
@@ -132,3 +138,4 @@ set PATH=%OLDPATH%
 set OLDPATH=
 set PY_VER=
 set APP_VER=
+set PROJ_TYPE=

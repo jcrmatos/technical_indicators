@@ -1,5 +1,6 @@
 include *.txt *.rst *.py *.bat *.yml
-recursive-include doc *
-recursive-include technical_indicators *.txt
+include doc/*.rst doc/*.py
+include pythonhosted.org/*
+include test/*.rst
+include technical_indicators/*.txt
 recursive-include technical_indicators/doc *
-recursive-include test *

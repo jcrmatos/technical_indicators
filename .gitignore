@@ -200,6 +200,9 @@ var/
 sdist/
 develop-eggs/
 .installed.cfg
+technical_indicators/doc/
+doc/Makefile
+doc/make.bat
 
 # Installer logs
 pip-log.txt

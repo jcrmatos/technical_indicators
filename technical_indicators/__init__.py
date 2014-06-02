@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Technical analysis indicators."""
+"""Initialization"""
 
 # Python 3 compatibility
 from __future__ import (absolute_import, division, print_function,
@@ -10,9 +10,10 @@ from __future__ import (absolute_import, division, print_function,
 # The above unicode_literals import prevents setup.py from working.
 # It seems to be a bug in setuptools.
 # py2exe build also does not work if it is unremarked.
-
 import sys
 from os import path
+import glob
+
 
 sys.path.insert(1, path.dirname(__file__))  # add to PYTHONPATH
 
@@ -45,8 +46,7 @@ CLASSIFIERS = ['Development Status :: 4 - Beta',
                'Intended Audience :: Developers',
                'Intended Audience :: Financial and Insurance Industry',
                'Natural Language :: English',
-               'License :: OSI Approved ::' +
-               ' GNU General Public License v2 or later (GPLv2+)',
+               'License :: OSI Approved ::' + ' ' + LICENSE,
                'Operating System :: OS Independent',
                'Programming Language :: Python',
                'Programming Language :: Python :: 2.7',
@@ -59,10 +59,12 @@ AUTHORS_FILE = 'AUTHORS.txt'
 
 DATA_FILES = [LICENSE_FILE, README_FILE, AUTHORS_FILE, CHANGE_LOG_FILE]
 
-DATA_FILES_PY2EXE = [('', [NAME + '/' + LICENSE_FILE]),
-                     ('', [NAME + '/' + README_FILE]),
-                     ('', [NAME + '/' + AUTHORS_FILE]),
-                     ('', [NAME + '/' + CHANGE_LOG_FILE])]
+#DATA_FILES_PY2EXE = [('', [NAME + '/' + LICENSE_FILE]),
+#                     ('', [NAME + '/' + README_FILE]),
+#                     ('', [NAME + '/' + AUTHORS_FILE]),
+#                     ('', [NAME + '/' + CHANGE_LOG_FILE])]
+DATA_FILES_PY2EXE = glob.glob(NAME + '/' + '*.txt')
 
-DATA_FILES_CXF = [NAME + '/' + LICENSE_FILE, NAME + '/' + README_FILE,
-                  NAME + '/' + AUTHORS_FILE, NAME + '/' + CHANGE_LOG_FILE]
+#DATA_FILES_CXF = [NAME + '/' + LICENSE_FILE, NAME + '/' + README_FILE,
+#                  NAME + '/' + AUTHORS_FILE, NAME + '/' + CHANGE_LOG_FILE]
+DATA_FILES_CXF = glob.glob(NAME + '/' + '*.txt')
