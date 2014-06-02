@@ -1,3 +1,8 @@
+0.0.15 2014-06-02 ::
+
+    Changed both yml files to become as similar as possible.
+
+
 0.0.14 2014-06-02 ::
 
     Added end user documentation to .gitignore.
