@@ -59,7 +59,6 @@ setup(name=NAME,
       author_email=EMAIL,
 
       classifiers=CLASSIFIERS,
-      platform='any',
       keywords=KEYWORDS,
 
       packages=find_packages(),

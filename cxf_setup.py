@@ -48,7 +48,6 @@ setup(name=NAME,
       author_email=EMAIL,
 
       classifiers=CLASSIFIERS,
-      platform='any',
       keywords=KEYWORDS,
 
       executables=[Executable(script=SCRIPT,
