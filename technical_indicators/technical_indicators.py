@@ -65,7 +65,7 @@ def roc(prices, period=21):
     [-3.84879682 -4.84888048 -4.52064339 -6.34389154 -7.85923013 -6.20834146
      -4.31308173 -3.24341092]
     """
-
+    prices = np.array(prices)
     num_prices = len(prices)
 
     if num_prices < period:
@@ -135,7 +135,7 @@ def rsi(prices, period=14):
       54.39159393  50.10513101  39.68712141  41.17273382  41.5859395
       45.21224077  37.06939108  32.85768734  37.58081218]
     """
-
+    prices = np.array(prices)
     num_prices = len(prices)
 
     if num_prices < period:
@@ -224,7 +224,7 @@ def sma(prices, period):
       23.076  23.21   23.377  23.525  23.652  23.71   23.684  23.612  23.505
       23.432  23.277  23.131]
     """
-
+    prices = np.array(prices)
     num_prices = len(prices)
 
     if num_prices < period:
@@ -284,7 +284,7 @@ def wma(prices, period):
     >>> print(tai.wma(prices, period))
     [ 80.73333333  70.46666667  64.06666667]
     """
-
+    prices = np.array(prices)
     num_prices = len(prices)
 
     if num_prices < period:
@@ -396,7 +396,7 @@ def ema(prices, period, ema_type=0):
       23.13280996  23.29414649  22.79166223  23.04393782  22.51707883
       22.23310448]
     """
-
+    prices = np.array(prices)
     num_prices = len(prices)
 
     if num_prices < period:
@@ -526,7 +526,7 @@ def ma_env(prices, period, percent, ma_type=0):
      [ 100.2826       91.166        82.0494       18.2332        0.59948884]
      [ 100.15445      91.0495       81.94455      18.2099        0.54121385]]
     """
-
+    prices = np.array(prices)
     num_prices = len(prices)
 
     if num_prices < period:
@@ -666,7 +666,7 @@ def bb(prices, period, num_std_dev=2.0):
      [  9.41460689e+01   9.10495000e+01   8.79529311e+01   6.80194599e-02
         6.19313782e+00   6.21182512e-01]]
     """
-
+    prices = np.array(prices)
     num_prices = len(prices)
 
     if num_prices < period:
